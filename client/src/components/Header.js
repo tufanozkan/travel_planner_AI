@@ -5,229 +5,263 @@ import {
   IconButton,
   Typography,
   Button,
+  Popover,
   Box,
+  TextField,
   Menu,
   MenuItem,
   useMediaQuery,
 } from "@mui/material";
-import { Link } from "react-router-dom";
-import logo from "../assets/logos/beyzadeLogo-rmBG.png"; // Logo
-import menu from "../assets/icons/menu.svg";
-import cartIcon from "../assets/icons/shopcart.svg"; // Cart Icon
+import MenuIcon from "@mui/icons-material/Menu"; // Menü İkonu
 
 const Header = () => {
-  const [anchorEl, setAnchorEl] = useState(null);
+  const [loginAnchorEl, setLoginAnchorEl] = useState(null);
+  const [signupAnchorEl, setSignupAnchorEl] = useState(null);
+  const [menuAnchorEl, setMenuAnchorEl] = useState(null);
+  const isMobile = useMediaQuery("(max-width: 765px)");
 
-  const isTabletOrMobile = useMediaQuery("(max-width: 765px)");
-
-  const handleMenu = (event) => {
-    setAnchorEl(event.currentTarget);
-  };
-
+  const handleLoginOpen = (event) => setLoginAnchorEl(event.currentTarget);
+  const handleSignupOpen = (event) => setSignupAnchorEl(event.currentTarget);
   const handleClose = () => {
-    setAnchorEl(null);
+    setLoginAnchorEl(null);
+    setSignupAnchorEl(null);
+    setMenuAnchorEl(null);
   };
+
+  const handleMenuOpen = (event) => setMenuAnchorEl(event.currentTarget);
+
+  const isLoginOpen = Boolean(loginAnchorEl);
+  const isSignupOpen = Boolean(signupAnchorEl);
+  const isMenuOpen = Boolean(menuAnchorEl);
 
   return (
     <AppBar
       position="static"
       sx={{
-        borderBottom: "2px solid #898C3A",
-        margin: 0,
-        backgroundColor: "#252618",
+        backgroundColor: "#12293d", // color1
+        borderBottom: "2px solid #12465f", // color2
       }}
     >
-      {/* House-in-Forest-2 (Dark Green) */}
-      <Toolbar sx={{ justifyContent: "space-between" }}>
-        <Box
-          sx={{ alignItems: "center", display: "flex", flexDirection: "row" }}
-        >
-          <Link to="/" style={{ textDecoration: "none" }}>
-            <img src={logo} alt="Logo" style={{ maxWidth: "140px" }} />
-          </Link>
-
-          <Link to="/" style={{ textDecoration: "none" }}>
-            <Typography
-              variant="h6"
-              component="div"
-              sx={{
-                flexGrow: 1,
-                color: "#898C3A", // House-in-Forest-3 (Light Olive)
-                fontFamily: "Poppins, sans-serif",
-                fontWeight: "700",
-                letterSpacing: "0.1em",
-                textAlign: "center",
-              }}
-            >
-              Beyzade Çiftliği
-            </Typography>
-          </Link>
-        </Box>
-
-        {/* Desktop Menu, only shown on screens wider than 900px */}
-        {!isTabletOrMobile && (
-          <Box sx={{ display: "flex", alignItems: "center", gap: 2 }}>
-            {/* Cart Icon for Desktop */}
-            <IconButton
-              edge="end"
-              color="inherit"
-              component={Link}
-              to="/cart"
-              aria-label="cart"
-            >
-              <img
-                src={cartIcon}
-                alt="Cart Icon"
-                style={{
-                  width: "24px",
-                  height: "24px",
-                  filter:
-                    "invert(40%) sepia(20%) saturate(400%) hue-rotate(40deg)",
-                }}
-              />
-            </IconButton>
-            <Button
-              component={Link}
-              to="/"
-              color="inherit"
-              sx={{
-                "&:hover": { backgroundColor: "#bb9457" }, // Beige
-                fontFamily: "Poppins, sans-serif", // Consistent font style
-                fontWeight: "600", // Semi-bold for better emphasis
-                textTransform: "uppercase", // Capital letters for a creative look
-              }}
-            >
-              ANASAYFA
-            </Button>
-            <Button
-              component={Link}
-              to="/about"
-              color="inherit"
-              sx={{
-                "&:hover": { backgroundColor: "#bb9457" },
-                fontFamily: "Poppins, sans-serif",
-                fontWeight: "600",
-                textTransform: "uppercase",
-              }}
-            >
-              HAKKIMIZDA
-            </Button>
-            <Button
-              component={Link}
-              to="/products"
-              color="inherit"
-              sx={{
-                "&:hover": { backgroundColor: "#bb9457" },
-                fontFamily: "Poppins, sans-serif",
-                fontWeight: "600",
-                textTransform: "uppercase",
-              }}
-            >
-              ÜRÜNLERİMİZ
-            </Button>
-            <Button
-              component={Link}
-              to="/communicate"
-              color="inherit"
-              sx={{
-                "&:hover": { backgroundColor: "#bb9457" },
-                fontFamily: "Poppins, sans-serif",
-                fontWeight: "600",
-                textTransform: "uppercase",
-              }}
-            >
-              İLETİŞİM
-            </Button>
-          </Box>
-        )}
-
-        {/* Mobile/Tablet Menu */}
-        {isTabletOrMobile && (
-          <Box
+      <Toolbar
+        sx={{
+          justifyContent: isMobile ? "space-between" : "space-between",
+          alignItems: "center",
+        }}
+      >
+        {/* Login Butonu */}
+        {!isMobile && (
+          <Button
+            onClick={handleLoginOpen}
             sx={{
-              textAlign: "center",
-              display: "flex",
-              alignItems: "center",
-              gap: 1,
+              color: "#20dbd8", // color5
+              fontFamily: "Poppins, sans-serif",
+              fontWeight: "600",
+              textTransform: "uppercase",
+              "&:hover": { backgroundColor: "#12465f" }, // color2
             }}
           >
-            <IconButton
-              edge="end"
-              color="inherit"
-              aria-label="menu"
-              onClick={handleMenu}
-            >
-              <img
-                src={menu}
-                alt="Menu Icon"
-                style={{
-                  width: "24px",
-                  height: "24px",
-                  filter:
-                    "invert(40%) sepia(20%) saturate(400%) hue-rotate(40deg)",
-                }}
-              />
-            </IconButton>
-            {/* Cart Icon for Mobile */}
-            <IconButton
-              edge="end"
-              color="inherit"
-              component={Link}
-              to="/cart"
-              aria-label="cart"
-            >
-              <img
-                src={cartIcon}
-                alt="Cart Icon"
-                style={{
-                  width: "24px",
-                  height: "24px",
-                  filter:
-                    "invert(40%) sepia(20%) saturate(400%) hue-rotate(40deg)",
-                }}
-              />
-            </IconButton>
-          </Box>
+            Login
+          </Button>
         )}
 
-        {/* Mobile Menu Items */}
-        <Menu
-          anchorEl={anchorEl}
-          open={Boolean(anchorEl)}
-          onClose={handleClose}
-          PaperProps={{
-            elevation: 0,
-            sx: {
-              border: "1px groove #ffe6a7", // Border color for the menu
-              overflow: "visible",
-              backgroundColor: "#6f1d1b", // Dark Red
-              "& .MuiMenuItem-root": {
-                color: "#ffe6a7", // Light Cream for text color
-                padding: "12px 24px", // Adjust padding as needed
-                "&:hover": {
-                  backgroundColor: "#bb9457", // Beige on hover
-                },
-                fontFamily: "Poppins, sans-serif",
-                fontWeight: "600", // Slightly bold text
-                textTransform: "uppercase", // All caps for style
-              },
-            },
+        {/* Başlık */}
+        <Typography
+          variant="h5"
+          component="div"
+          sx={{
+            color: "#20dbd8", // color5
+            fontFamily: "Poppins, sans-serif",
+            fontWeight: "700",
+            textTransform: "uppercase",
+            letterSpacing: "0.1em",
+            textAlign: "center",
+            flexGrow: 1,
           }}
         >
-          <MenuItem onClick={handleClose} component={Link} to="/">
-            ANASAYFA
-          </MenuItem>
-          <MenuItem onClick={handleClose} component={Link} to="/about">
-            HAKKIMIZDA
-          </MenuItem>
-          <MenuItem onClick={handleClose} component={Link} to="/products">
-            ÜRÜNLERİMİZ
-          </MenuItem>
-          <MenuItem onClick={handleClose} component={Link} to="/communicate">
-            İLETİŞİM
-          </MenuItem>
-        </Menu>
+          Travel Planner AI
+        </Typography>
+
+        {/* Sign Up Butonu */}
+        {!isMobile && (
+          <Button
+            onClick={handleSignupOpen}
+            sx={{
+              color: "#20dbd8", // color5
+              fontFamily: "Poppins, sans-serif",
+              fontWeight: "600",
+              textTransform: "uppercase",
+              "&:hover": { backgroundColor: "#12465f" }, // color2
+            }}
+          >
+            Sign Up
+          </Button>
+        )}
+
+        {/* Mobil Menü */}
+        {isMobile && (
+          <>
+            <IconButton color="inherit" onClick={handleMenuOpen}>
+              <MenuIcon sx={{ color: "#20dbd8" }} />
+            </IconButton>
+            <Menu
+              anchorEl={menuAnchorEl}
+              open={isMenuOpen}
+              onClose={handleClose}
+              PaperProps={{
+                sx: {
+                  backgroundColor: "#12293d", // color1
+                  color: "#20dbd8", // color5
+                  "& .MuiMenuItem-root": {
+                    fontFamily: "Poppins, sans-serif",
+                    "&:hover": { backgroundColor: "#12465f" },
+                  },
+                },
+              }}
+            >
+              <MenuItem onClick={handleLoginOpen}>Login</MenuItem>
+              <MenuItem onClick={handleSignupOpen}>Sign Up</MenuItem>
+            </Menu>
+          </>
+        )}
       </Toolbar>
+
+      {/* Login Popover */}
+      <Popover
+        open={isLoginOpen}
+        anchorEl={loginAnchorEl}
+        onClose={handleClose}
+        anchorOrigin={{ vertical: "bottom", horizontal: "center" }}
+      >
+        <Box
+          component="form"
+          sx={{
+            p: 2,
+            width: "300px",
+            backgroundColor: "#12293d", // color1
+            color: "#20dbd8", // color5
+          }}
+        >
+          <Typography variant="h6" sx={{ mb: 2, color: "#1aa3b5" }}>
+            Login
+          </Typography>
+          <TextField
+            fullWidth
+            label="Email"
+            name="email"
+            type="email"
+            sx={{
+              mb: 2,
+              input: { color: "#146f87" },
+              label: { color: "#146f87" },
+            }}
+          />
+          <TextField
+            fullWidth
+            label="Password"
+            name="password"
+            type="password"
+            sx={{
+              mb: 2,
+              input: { color: "#146f87" },
+              label: { color: "#146f87" },
+            }}
+          />
+          <Button
+            type="submit"
+            fullWidth
+            variant="contained"
+            sx={{ mb: 2, backgroundColor: "#12465f" }}
+          >
+            Login
+          </Button>
+          <Button
+            fullWidth
+            variant="outlined"
+            sx={{ color: "#1aa3b5", borderColor: "#1aa3b5" }}
+          >
+            Google ile Giriş
+          </Button>
+        </Box>
+      </Popover>
+
+      {/* Signup Popover */}
+      <Popover
+        open={isSignupOpen}
+        anchorEl={signupAnchorEl}
+        onClose={handleClose}
+        anchorOrigin={{ vertical: "bottom", horizontal: "center" }}
+      >
+        <Box
+          component="form"
+          sx={{
+            p: 2,
+            width: "300px",
+            backgroundColor: "#12293d", // color1
+            color: "#20dbd8", // color5
+          }}
+        >
+          <Typography variant="h6" sx={{ mb: 2, color: "#1aa3b5" }}>
+            Sign Up
+          </Typography>
+          <TextField
+            fullWidth
+            label="Name"
+            name="name"
+            sx={{
+              mb: 2,
+              input: { color: "#146f87" },
+              label: { color: "#146f87" },
+            }}
+          />
+          <TextField
+            fullWidth
+            label="Surname"
+            name="surname"
+            sx={{
+              mb: 2,
+              input: { color: "#146f87" },
+              label: { color: "#146f87" },
+            }}
+          />
+          <TextField
+            fullWidth
+            label="Email"
+            name="email"
+            type="email"
+            sx={{
+              mb: 2,
+              input: { color: "#146f87" },
+              label: { color: "#146f87" },
+            }}
+          />
+          <TextField
+            fullWidth
+            label="Password"
+            name="password"
+            type="password"
+            sx={{
+              mb: 2,
+              input: { color: "#146f87" },
+              label: { color: "#146f87" },
+            }}
+          />
+          <Button
+            type="submit"
+            fullWidth
+            variant="contained"
+            sx={{ mb: 2, backgroundColor: "#12465f" }}
+          >
+            Sign Up
+          </Button>
+          <Button
+            fullWidth
+            variant="outlined"
+            sx={{ color: "#1aa3b5", borderColor: "#1aa3b5" }}
+          >
+            Google ile Kayıt
+          </Button>
+        </Box>
+      </Popover>
     </AppBar>
   );
 };
