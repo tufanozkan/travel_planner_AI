@@ -1,7 +1,161 @@
-const cheerio = require("cheerio");
-const fs = require("fs").promises;
-const path = require("path");
 const puppeteer = require("puppeteer");
+const { countries } = require("countries-list");
+const cities = require("cities.json");
+
+// Türkiye'nin 81 ili
+const turkishCities = [
+  "Adana",
+  "Adıyaman",
+  "Afyonkarahisar",
+  "Ağrı",
+  "Amasya",
+  "Ankara",
+  "Antalya",
+  "Artvin",
+  "Aydın",
+  "Balıkesir",
+  "Bilecik",
+  "Bingöl",
+  "Bitlis",
+  "Bolu",
+  "Burdur",
+  "Bursa",
+  "Çanakkale",
+  "Çankırı",
+  "Çorum",
+  "Denizli",
+  "Diyarbakır",
+  "Edirne",
+  "Elazığ",
+  "Erzincan",
+  "Erzurum",
+  "Eskişehir",
+  "Gaziantep",
+  "Giresun",
+  "Gümüşhane",
+  "Hakkari",
+  "Hatay",
+  "Isparta",
+  "Mersin",
+  "İstanbul",
+  "İzmir",
+  "Kars",
+  "Kastamonu",
+  "Kayseri",
+  "Kırklareli",
+  "Kırşehir",
+  "Kocaeli",
+  "Konya",
+  "Kütahya",
+  "Malatya",
+  "Manisa",
+  "Kahramanmaraş",
+  "Mardin",
+  "Muğla",
+  "Muş",
+  "Nevşehir",
+  "Niğde",
+  "Ordu",
+  "Rize",
+  "Sakarya",
+  "Samsun",
+  "Siirt",
+  "Sinop",
+  "Sivas",
+  "Tekirdağ",
+  "Tokat",
+  "Trabzon",
+  "Tunceli",
+  "Şanlıurfa",
+  "Uşak",
+  "Van",
+  "Yozgat",
+  "Zonguldak",
+  "Aksaray",
+  "Bayburt",
+  "Karaman",
+  "Kırıkkale",
+  "Batman",
+  "Şırnak",
+  "Bartın",
+  "Ardahan",
+  "Iğdır",
+  "Yalova",
+  "Karabük",
+  "Kilis",
+  "Osmaniye",
+  "Düzce",
+];
+
+const extractLocation = (title) => {
+  if (!title) return null;
+
+  // Başlığı küçük harfe çevir ve temizle
+  const cleanTitle = title
+    .toLowerCase()
+    .replace(/'/g, "") // Kesme işaretlerini kaldır
+    .replace(/[.,\/#!$%\^&\*;:{}=\-_`~()]/g, " ")
+    .replace(/\s+/g, " ")
+    .trim();
+
+  // Türkçe karakterleri normalize et
+  const normalizeText = (text) => {
+    return text
+      .replace(/ı/g, "i")
+      .replace(/ğ/g, "g")
+      .replace(/ü/g, "u")
+      .replace(/ş/g, "s")
+      .replace(/ö/g, "o")
+      .replace(/ç/g, "c")
+      .replace(/İ/g, "i");
+  };
+
+  // Kelimelere ayır
+  const words = cleanTitle.split(" ");
+
+  // Önce Türkiye'nin illerini kontrol et
+  for (const city of turkishCities) {
+    const cityNormalized = normalizeText(city.toLowerCase());
+
+    const cityFound = words.some((word) => {
+      const normalizedWord = normalizeText(word);
+      return (
+        normalizedWord === cityNormalized ||
+        normalizedWord === cityNormalized + "da" ||
+        normalizedWord === cityNormalized + "ta" ||
+        normalizedWord === cityNormalized + "de" ||
+        normalizedWord === cityNormalized + "te" ||
+        normalizedWord.startsWith(cityNormalized + " ")
+      );
+    });
+
+    if (cityFound) {
+      return city;
+    }
+  }
+
+  // Türkiye şehirlerinde bulunamazsa diğer ülkeleri kontrol et
+  for (const countryCode in countries) {
+    const country = countries[countryCode];
+    const countryNormalized = normalizeText(country.name.toLowerCase());
+
+    if (words.some((word) => normalizeText(word) === countryNormalized)) {
+      return country.name;
+    }
+  }
+
+  // Son olarak global şehir veritabanını kontrol et
+  const cityMatch = cities.find((city) => {
+    const cityNormalized = normalizeText(city.name.toLowerCase());
+    return words.some((word) => normalizeText(word) === cityNormalized);
+  });
+
+  if (cityMatch) {
+    return cityMatch.name;
+  }
+
+  return null;
+};
 
 const scrapeTranscript = async (req, res) => {
   let browser;
@@ -18,7 +172,6 @@ const scrapeTranscript = async (req, res) => {
       const url = `https://www.youtube-transcript.io/videos/${videoId}`;
 
       try {
-        // Puppeteer ile browser başlat - daha fazla seçenek ekledik
         browser = await puppeteer.launch({
           headless: "new",
           args: [
@@ -46,6 +199,12 @@ const scrapeTranscript = async (req, res) => {
 
         // Biraz bekle
         await new Promise((resolve) => setTimeout(resolve, 8000));
+
+        // Sayfa başlığını h2 elementinden al
+        const title = await page.evaluate(() => {
+          const titleElement = document.querySelector("h2.text-lg");
+          return titleElement ? titleElement.textContent.trim() : "";
+        });
 
         // Sayfadaki tüm transcript elementlerini bul
         const transcript = await page.evaluate(() => {
@@ -76,45 +235,29 @@ const scrapeTranscript = async (req, res) => {
         await browser.close();
         browser = null;
 
+        // Konum bilgisini çıkar
+        const location = extractLocation(title);
+
         if (transcript.length === 0) {
-          // Debug için sayfanın içeriğini kontrol et
           return res.status(404).json({
             success: false,
             message: "Transcript bulunamadı",
-            error: "No transcript found",
-            videoId,
-            debug: {
-              url,
-              selectors: [
-                ".group",
-                ".text-xs.text-muted-foreground",
-                ".text-sm.leading-relaxed.font-light",
-              ],
+            data: {
+              videoId,
+              title,
+              location,
             },
           });
         }
 
-        // Transcript'i txt formatında oluştur
-        let txtContent = "";
-        transcript.forEach(({ time, text }) => {
-          txtContent += `[${time}] ${text}\n`;
-        });
-
-        // Dosyayı kaydet
-        const fileName = `transcript_${videoId}_${Date.now()}.txt`;
-        const filePath = path.join(__dirname, "..", "uploads", fileName);
-
-        await fs.writeFile(filePath, txtContent, "utf8");
-
         return res.status(200).json({
           success: true,
-          message: "Transcript başarıyla kaydedildi",
+          message: "Transcript başarıyla alındı",
           data: {
             videoId,
+            title,
+            location,
             transcript,
-            fileName,
-            filePath,
-            txtContent,
           },
           count: transcript.length,
         });
@@ -129,80 +272,11 @@ const scrapeTranscript = async (req, res) => {
         });
       }
     }
-
-    // POST isteği için body kontrolü
-    const htmlContent = req.body?.div || req.body?.content || req.body?.html;
-
-    if (!htmlContent) {
-      return res.status(400).json({
-        success: false,
-        message: "Transcript içeriği gerekli",
-        error: "Content is required",
-        receivedBody: JSON.stringify(req.body),
-      });
-    }
-
-    const $ = cheerio.load(htmlContent);
-    const transcript = [];
-
-    // Her bir grup elementini seç ve işle
-    $(".group").each((i, el) => {
-      const time = $(el).find(".text-xs.text-muted-foreground").text().trim();
-      const text = $(el)
-        .find(".text-sm.leading-relaxed.font-light")
-        .text()
-        .trim();
-
-      if (time && text) {
-        transcript.push({ time, text });
-      }
-    });
-
-    // Eğer hiç transcript bulunamadıysa
-    if (transcript.length === 0) {
-      return res.status(404).json({
-        success: false,
-        message: "Transcript bulunamadı",
-        error: "No transcript found",
-        htmlReceived: htmlContent.slice(0, 100),
-      });
-    }
-
-    // Transcript'i txt formatında oluştur
-    let txtContent = "";
-    transcript.forEach(({ time, text }) => {
-      txtContent += `[${time}] ${text}\n`;
-    });
-
-    // Dosyayı kaydet
-    const fileName = `transcript_${Date.now()}.txt`;
-    const filePath = `./uploads/${fileName}`;
-
-    try {
-      await fs.writeFile(filePath, txtContent, "utf8");
-
-      return res.status(200).json({
-        success: true,
-        message: "Transcript başarıyla kaydedildi",
-        data: {
-          transcript,
-          fileName,
-          filePath,
-          txtContent,
-        },
-        count: transcript.length,
-      });
-    } catch (error) {
-      console.error("Dosya kaydedilirken hata:", error);
-      return res.status(500).json({
-        success: false,
-        message: "Transcript dosyası kaydedilemedi",
-        error: error.message,
-      });
-    }
   } catch (error) {
-    if (browser) await browser.close();
-    console.error("İşlem sırasında hata:", error);
+    console.error("Hata:", error);
+    if (browser) {
+      await browser.close();
+    }
     return res.status(500).json({
       success: false,
       message: "Bir hata oluştu",

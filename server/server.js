@@ -1,17 +1,9 @@
 require("dotenv").config();
 const express = require("express");
 const cors = require("cors");
-const fs = require("fs").promises;
-const path = require("path");
 
 // Express app oluştur
 const app = express();
-
-// Uploads klasörünü oluştur
-const uploadsDir = path.join(__dirname, "uploads");
-fs.mkdir(uploadsDir, { recursive: true }).catch((err) =>
-  console.error("Uploads klasörü oluşturulamadı:", err)
-);
 
 // Middleware
 app.use(cors());
