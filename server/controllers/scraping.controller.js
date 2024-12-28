@@ -90,68 +90,111 @@ const turkishCities = [
 const extractLocation = (title) => {
   if (!title) return null;
 
-  // Başlığı küçük harfe çevir ve temizle
+  // Başlığı temizle
   const cleanTitle = title
-    .toLowerCase()
     .replace(/'/g, "") // Kesme işaretlerini kaldır
+    .replace(/'/g, "") // Farklı kesme işaretlerini kaldır
+    .replace(/'/g, "") // Farklı kesme işaretlerini kaldır
     .replace(/[.,\/#!$%\^&\*;:{}=\-_`~()]/g, " ")
     .replace(/\s+/g, " ")
     .trim();
 
-  // Türkçe karakterleri normalize et
-  const normalizeText = (text) => {
-    return text
-      .replace(/ı/g, "i")
-      .replace(/ğ/g, "g")
-      .replace(/ü/g, "u")
-      .replace(/ş/g, "s")
-      .replace(/ö/g, "o")
-      .replace(/ç/g, "c")
-      .replace(/İ/g, "i");
+  // Türkçe karakter varyasyonlarını oluştur
+  const createVariations = (text) => {
+    const charMap = {
+      i: ["i", "ı", "İ", "I"],
+      ı: ["i", "ı", "İ", "I"],
+      İ: ["i", "ı", "İ", "I"],
+      I: ["i", "ı", "İ", "I"],
+      ğ: ["ğ", "g", "Ğ", "G"],
+      Ğ: ["ğ", "g", "Ğ", "G"],
+      ü: ["ü", "u", "Ü", "U"],
+      Ü: ["ü", "u", "Ü", "U"],
+      ş: ["ş", "s", "Ş", "S"],
+      Ş: ["ş", "s", "Ş", "S"],
+      ö: ["ö", "o", "Ö", "O"],
+      Ö: ["ö", "o", "Ö", "O"],
+      ç: ["ç", "c", "Ç", "C"],
+      Ç: ["ç", "c", "Ç", "C"],
+    };
+
+    let variations = [text];
+
+    // Her karakter için olası varyasyonları oluştur
+    for (let i = 0; i < text.length; i++) {
+      const char = text[i];
+      if (charMap[char]) {
+        const newVariations = [];
+        variations.forEach((variant) => {
+          charMap[char].forEach((replacement) => {
+            newVariations.push(
+              variant.slice(0, i) + replacement + variant.slice(i + 1)
+            );
+          });
+        });
+        variations = [...variations, ...newVariations];
+      }
+    }
+
+    // Büyük/küçük harf varyasyonları
+    variations = variations.reduce((acc, variant) => {
+      acc.push(variant.toLowerCase());
+      acc.push(variant.toUpperCase());
+      acc.push(
+        variant.charAt(0).toUpperCase() + variant.slice(1).toLowerCase()
+      );
+      return acc;
+    }, []);
+
+    // Tekrar eden varyasyonları kaldır
+    return [...new Set(variations)];
+  };
+
+  // Ekleri kontrol et
+  const checkSuffixes = (word, location) => {
+    const suffixes = [
+      "", // Eksiz hal
+      "da",
+      "de",
+      "ta",
+      "te", // Bulunma hali
+      "dan",
+      "den",
+      "tan",
+      "ten", // Ayrılma hali
+      "a",
+      "e", // Yönelme hali
+      "nin",
+      "nın",
+      "nün",
+      "nun", // İyelik hali
+      "li",
+      "lı",
+      "lu",
+      "lü", // -li hali
+      "daki",
+      "deki",
+      "taki",
+      "teki", // Bulunma + ki
+    ];
+
+    const variations = createVariations(location);
+
+    return variations.some((variant) =>
+      suffixes.some(
+        (suffix) => word === variant + suffix || word.startsWith(variant + " ")
+      )
+    );
   };
 
   // Kelimelere ayır
-  const words = cleanTitle.split(" ");
+  const words = cleanTitle.toLowerCase().split(" ");
 
-  // Önce Türkiye'nin illerini kontrol et
+  // Türkiye'nin illerini kontrol et
   for (const city of turkishCities) {
-    const cityNormalized = normalizeText(city.toLowerCase());
-
-    const cityFound = words.some((word) => {
-      const normalizedWord = normalizeText(word);
-      return (
-        normalizedWord === cityNormalized ||
-        normalizedWord === cityNormalized + "da" ||
-        normalizedWord === cityNormalized + "ta" ||
-        normalizedWord === cityNormalized + "de" ||
-        normalizedWord === cityNormalized + "te" ||
-        normalizedWord.startsWith(cityNormalized + " ")
-      );
-    });
-
-    if (cityFound) {
+    if (words.some((word) => checkSuffixes(word, city))) {
       return city;
     }
-  }
-
-  // Türkiye şehirlerinde bulunamazsa diğer ülkeleri kontrol et
-  for (const countryCode in countries) {
-    const country = countries[countryCode];
-    const countryNormalized = normalizeText(country.name.toLowerCase());
-
-    if (words.some((word) => normalizeText(word) === countryNormalized)) {
-      return country.name;
-    }
-  }
-
-  // Son olarak global şehir veritabanını kontrol et
-  const cityMatch = cities.find((city) => {
-    const cityNormalized = normalizeText(city.name.toLowerCase());
-    return words.some((word) => normalizeText(word) === cityNormalized);
-  });
-
-  if (cityMatch) {
-    return cityMatch.name;
   }
 
   return null;

@@ -20,7 +20,7 @@
     "countries-list": "^3.1.1",
     "dotenv": "^16.4.7",
     "express": "^4.21.2",
-    "mongoose": "^8.8.4",
+    "mongoose": "^8.9.2",
     "puppeteer": "^23.11.1",
     "world-countries": "^5.0.0"
   },

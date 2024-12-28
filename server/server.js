@@ -1,17 +1,22 @@
 require("dotenv").config();
 const express = require("express");
 const cors = require("cors");
+const connectDB = require("./config/db.config");
+const transcriptRoutes = require("./routes/transcript.routes");
+const scrapingRoutes = require("./routes/scraping.routes");
 
 // Express app oluştur
 const app = express();
 
+// MongoDB Atlas bağlantısı
+connectDB();
+
 // Middleware
 app.use(cors());
 app.use(express.json());
-app.use(express.urlencoded({ extended: true }));
 
-// Routes for scraping
-const scrapingRoutes = require("./routes/scraping.routes");
+// Routes
+app.use("/api/transcripts", transcriptRoutes);
 app.use("/api/scrape", scrapingRoutes);
 
 // 404 handler
