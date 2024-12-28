@@ -18,7 +18,7 @@ app.use(cors());
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
-// Routes
+// Routes for scraping
 const scrapingRoutes = require("./routes/scraping.routes");
 app.use("/api/scrape", scrapingRoutes);
 

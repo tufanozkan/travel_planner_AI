@@ -4,6 +4,7 @@ const path = require("path");
 const puppeteer = require("puppeteer");
 
 const scrapeTranscript = async (req, res) => {
+  let browser;
   try {
     if (req.method === "GET") {
       const { videoId } = req.params;
@@ -17,101 +18,109 @@ const scrapeTranscript = async (req, res) => {
       const url = `https://www.youtube-transcript.io/videos/${videoId}`;
 
       try {
-        // Puppeteer ile browser başlat
-        const browser = await puppeteer.launch({
+        // Puppeteer ile browser başlat - daha fazla seçenek ekledik
+        browser = await puppeteer.launch({
           headless: "new",
-          args: ["--no-sandbox", "--disable-setuid-sandbox"],
+          args: [
+            "--no-sandbox",
+            "--disable-setuid-sandbox",
+            "--disable-dev-shm-usage",
+            "--disable-accelerated-2d-canvas",
+            "--disable-gpu",
+            "--window-size=1920x1080",
+          ],
         });
+
         const page = await browser.newPage();
 
-        // Sayfaya git
-        await page.goto(url);
+        // User agent ekle
+        await page.setUserAgent(
+          "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"
+        );
 
-        // Sayfanın yüklenmesi için bekle
-        await new Promise((resolve) => setTimeout(resolve, 5000));
+        // Sayfaya git ve tam yüklenmesini bekle
+        await page.goto(url, {
+          waitUntil: "networkidle0",
+          timeout: 30000,
+        });
 
-        try {
-          // Transcript elementlerinin yüklenmesini bekle
-          await page.waitForSelector(".group", {
-            timeout: 10000,
-            visible: true,
-          });
+        // Biraz bekle
+        await new Promise((resolve) => setTimeout(resolve, 8000));
 
-          // Sayfanın HTML içeriğini al
-          const content = await page.evaluate(
-            () => document.documentElement.outerHTML
-          );
+        // Sayfadaki tüm transcript elementlerini bul
+        const transcript = await page.evaluate(() => {
+          const groups = document.querySelectorAll(".group");
+          return Array.from(groups)
+            .map((group) => {
+              const timeElement = group.querySelector(
+                ".text-xs.text-muted-foreground"
+              );
+              const textElement = group.querySelector(
+                ".text-sm.leading-relaxed.font-light"
+              );
 
-          // Browser'ı kapat
-          await browser.close();
+              return {
+                time: timeElement ? timeElement.textContent.trim() : "",
+                text: textElement
+                  ? textElement.textContent
+                      .replace("add a note", "")
+                      .replace("jump to", "")
+                      .trim()
+                  : "",
+              };
+            })
+            .filter((item) => item.time && item.text);
+        });
 
-          const $ = cheerio.load(content);
-          const transcript = [];
+        // Browser'ı kapat
+        await browser.close();
+        browser = null;
 
-          // Her bir grup elementini seç ve işle
-          $(".group").each((i, el) => {
-            const timeElement = $(el)
-              .find(".text-xs.text-muted-foreground")
-              .first();
-            const textElement = $(el)
-              .find(".text-sm.leading-relaxed.font-light")
-              .first();
-
-            const time = timeElement.text().trim();
-            const text = textElement.text().trim();
-
-            if (time && text) {
-              // Gereksiz butonları ve boşlukları temizle
-              const cleanText = text.replace(/add a note|jump to/g, "").trim();
-              transcript.push({ time, text: cleanText });
-            }
-          });
-
-          if (transcript.length === 0) {
-            return res.status(404).json({
-              success: false,
-              message: "Transcript bulunamadı",
-              error: "No transcript found",
-              videoId,
-              debug: {
-                url,
-                htmlPreview: content.slice(0, 500),
-              },
-            });
-          }
-
-          // Transcript'i txt formatında oluştur
-          let txtContent = "";
-          transcript.forEach(({ time, text }) => {
-            txtContent += `[${time}] ${text}\n`;
-          });
-
-          // Dosyayı kaydet
-          const fileName = `transcript_${videoId}_${Date.now()}.txt`;
-          const filePath = path.join(__dirname, "..", "uploads", fileName);
-
-          await fs.writeFile(filePath, txtContent, "utf8");
-
-          return res.status(200).json({
-            success: true,
-            message: "Transcript başarıyla kaydedildi",
-            data: {
-              videoId,
-              transcript,
-              fileName,
-              filePath,
-              txtContent,
+        if (transcript.length === 0) {
+          // Debug için sayfanın içeriğini kontrol et
+          return res.status(404).json({
+            success: false,
+            message: "Transcript bulunamadı",
+            error: "No transcript found",
+            videoId,
+            debug: {
+              url,
+              selectors: [
+                ".group",
+                ".text-xs.text-muted-foreground",
+                ".text-sm.leading-relaxed.font-light",
+              ],
             },
-            count: transcript.length,
           });
-        } catch (selectorError) {
-          // Selector bulunamadıysa sayfanın içeriğini debug için logla
-          const pageContent = await page.content();
-          console.log("Sayfa içeriği:", pageContent);
-          throw new Error(`Selector bulunamadı: ${selectorError.message}`);
         }
+
+        // Transcript'i txt formatında oluştur
+        let txtContent = "";
+        transcript.forEach(({ time, text }) => {
+          txtContent += `[${time}] ${text}\n`;
+        });
+
+        // Dosyayı kaydet
+        const fileName = `transcript_${videoId}_${Date.now()}.txt`;
+        const filePath = path.join(__dirname, "..", "uploads", fileName);
+
+        await fs.writeFile(filePath, txtContent, "utf8");
+
+        return res.status(200).json({
+          success: true,
+          message: "Transcript başarıyla kaydedildi",
+          data: {
+            videoId,
+            transcript,
+            fileName,
+            filePath,
+            txtContent,
+          },
+          count: transcript.length,
+        });
       } catch (error) {
         console.error("Video transcript'i çekilirken hata:", error);
+        if (browser) await browser.close();
         return res.status(500).json({
           success: false,
           message: "Video transcript'i çekilirken hata oluştu",
@@ -192,6 +201,7 @@ const scrapeTranscript = async (req, res) => {
       });
     }
   } catch (error) {
+    if (browser) await browser.close();
     console.error("İşlem sırasında hata:", error);
     return res.status(500).json({
       success: false,
