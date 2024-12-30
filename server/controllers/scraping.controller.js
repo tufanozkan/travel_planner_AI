@@ -197,124 +197,142 @@ const extractLocation = (title) => {
     }
   }
 
+  // Dünya şehirlerini kontrol et
+  const worldCities = cities.filter(
+    (city) => !turkishCities.includes(city.name)
+  );
+  for (const city of worldCities) {
+    if (words.some((word) => checkSuffixes(word, city.name))) {
+      return city.name;
+    }
+  }
+
+  // Ülkeleri kontrol et
+  const countryNames = Object.values(countries).map((country) => country.name);
+  for (const country of countryNames) {
+    if (words.some((word) => checkSuffixes(word, country))) {
+      return country;
+    }
+  }
+
   return null;
 };
 
 const scrapeTranscript = async (req, res) => {
   let browser;
   try {
-    if (req.method === "GET") {
-      const { videoId } = req.params;
-      if (!videoId) {
-        return res.status(400).json({
-          success: false,
-          message: "Video ID gerekli",
-        });
-      }
-
-      const url = `https://www.youtube-transcript.io/videos/${videoId}`;
-
-      try {
-        browser = await puppeteer.launch({
-          headless: "new",
-          args: [
-            "--no-sandbox",
-            "--disable-setuid-sandbox",
-            "--disable-dev-shm-usage",
-            "--disable-accelerated-2d-canvas",
-            "--disable-gpu",
-            "--window-size=1920x1080",
-          ],
-        });
-
-        const page = await browser.newPage();
-
-        // User agent ekle
-        await page.setUserAgent(
-          "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"
-        );
-
-        // Sayfaya git ve tam yüklenmesini bekle
-        await page.goto(url, {
-          waitUntil: "networkidle0",
-          timeout: 30000,
-        });
-
-        // Biraz bekle
-        await new Promise((resolve) => setTimeout(resolve, 8000));
-
-        // Sayfa başlığını h2 elementinden al
-        const title = await page.evaluate(() => {
-          const titleElement = document.querySelector("h2.text-lg");
-          return titleElement ? titleElement.textContent.trim() : "";
-        });
-
-        // Sayfadaki tüm transcript elementlerini bul
-        const transcript = await page.evaluate(() => {
-          const groups = document.querySelectorAll(".group");
-          return Array.from(groups)
-            .map((group) => {
-              const timeElement = group.querySelector(
-                ".text-xs.text-muted-foreground"
-              );
-              const textElement = group.querySelector(
-                ".text-sm.leading-relaxed.font-light"
-              );
-
-              return {
-                time: timeElement ? timeElement.textContent.trim() : "",
-                text: textElement
-                  ? textElement.textContent
-                      .replace("add a note", "")
-                      .replace("jump to", "")
-                      .trim()
-                  : "",
-              };
-            })
-            .filter((item) => item.time && item.text);
-        });
-
-        // Browser'ı kapat
-        await browser.close();
-        browser = null;
-
-        // Konum bilgisini çıkar
-        const location = extractLocation(title);
-
-        if (transcript.length === 0) {
-          return res.status(404).json({
-            success: false,
-            message: "Transcript bulunamadı",
-            data: {
-              videoId,
-              title,
-              location,
-            },
-          });
-        }
-
-        return res.status(200).json({
-          success: true,
-          message: "Transcript başarıyla alındı",
-          data: {
-            videoId,
-            title,
-            location,
-            transcript,
-          },
-          count: transcript.length,
-        });
-      } catch (error) {
-        console.error("Video transcript'i çekilirken hata:", error);
-        if (browser) await browser.close();
-        return res.status(500).json({
-          success: false,
-          message: "Video transcript'i çekilirken hata oluştu",
-          error: error.message,
-          videoId,
-        });
-      }
+    const { videoId } = req.params;
+    if (!videoId) {
+      return res.status(400).json({
+        success: false,
+        message: "Video ID gerekli",
+      });
     }
+
+    const url = `https://www.youtube.com/watch?v=${videoId}`;
+
+    browser = await puppeteer.launch({
+      headless: "new",
+      args: [
+        "--no-sandbox",
+        "--disable-setuid-sandbox",
+        "--disable-dev-shm-usage",
+        "--disable-accelerated-2d-canvas",
+        "--disable-gpu",
+        "--window-size=1920x1080",
+      ],
+    });
+
+    const page = await browser.newPage();
+
+    // User agent ekle
+    await page.setUserAgent(
+      "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"
+    );
+
+    // Sayfaya git ve tam yüklenmesini bekle
+    await page.goto(url, {
+      waitUntil: "networkidle0",
+      timeout: 30000,
+    });
+
+    // Transkript butonuna tıkla ve panelin açılmasını bekle
+    await page.evaluate(() => {
+      const buttons = Array.from(document.querySelectorAll("button"));
+      const transcriptButton = buttons.find(
+        (button) =>
+          button.textContent.toLowerCase().includes("transcript") ||
+          button.textContent.toLowerCase().includes("transkript")
+      );
+      if (transcriptButton) transcriptButton.click();
+    });
+
+    // Transkript panelinin yüklenmesini bekle
+    await page.waitForSelector("ytd-transcript-segment-renderer", {
+      timeout: 5000,
+    });
+
+    // Başlığı al
+    const title = await page.evaluate(() => {
+      const titleElement = document.querySelector(
+        "h1.style-scope.ytd-watch-metadata"
+      );
+      return titleElement ? titleElement.textContent.trim() : "";
+    });
+
+    console.log("Başlık:", title);
+
+    // Transcript'i al
+    const transcript = await page.evaluate(() => {
+      const segments = document.querySelectorAll(
+        "ytd-transcript-segment-renderer"
+      );
+      return Array.from(segments)
+        .map((segment) => {
+          const timeElement = segment.querySelector(".segment-timestamp");
+          const textElement = segment.querySelector(".segment-text");
+
+          return {
+            time: timeElement ? timeElement.textContent.trim() : "",
+            text: textElement ? textElement.textContent.trim() : "",
+          };
+        })
+        .filter((item) => item.time && item.text);
+    });
+
+    // Browser'ı kapat
+    await browser.close();
+    browser = null;
+
+    // Konum bilgisini çıkar
+    const location = extractLocation(title);
+    console.log("Çıkarılan konum:", location);
+
+    if (transcript.length === 0) {
+      return res.status(404).json({
+        success: false,
+        message: "Transcript bulunamadı",
+        data: {
+          videoId,
+          title,
+          location,
+        },
+      });
+    }
+
+    // Transkript metinlerini birleştir
+    const combinedTranscript = transcript.map((item) => item.text).join(" ");
+
+    return res.status(200).json({
+      success: true,
+      message: "Transcript başarıyla alındı",
+      data: {
+        videoId,
+        transcript: combinedTranscript,
+        title,
+        location,
+      },
+    });
   } catch (error) {
     console.error("Hata:", error);
     if (browser) {
