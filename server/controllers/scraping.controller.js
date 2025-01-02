@@ -99,6 +99,14 @@ const extractLocation = (title) => {
     .replace(/\s+/g, " ")
     .trim();
 
+  // Özel şehir isimleri eşleştirmesi
+  const specialCityMap = {
+    Maraş: "Kahramanmaraş",
+    Antep: "Gaziantep",
+    Urfa: "Şanlıurfa",
+    Afyon: "Afyonkarahisar",
+  };
+
   // Türkçe karakter varyasyonlarını oluştur
   const createVariations = (text) => {
     const charMap = {
@@ -194,6 +202,13 @@ const extractLocation = (title) => {
   for (const city of turkishCities) {
     if (words.some((word) => checkSuffixes(word, city))) {
       return city;
+    }
+  }
+
+  // Özel şehir isimlerini kontrol et
+  for (const [shortName, fullName] of Object.entries(specialCityMap)) {
+    if (words.some((word) => checkSuffixes(word, shortName))) {
+      return fullName;
     }
   }
 

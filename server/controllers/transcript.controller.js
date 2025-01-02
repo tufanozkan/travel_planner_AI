@@ -1,3 +1,4 @@
+const mongoose = require("mongoose");
 const { getTranscriptModel } = require("../models/Transcript");
 const { scrapeTranscript } = require("./scraping.controller");
 

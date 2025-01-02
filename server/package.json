@@ -22,7 +22,9 @@
     "express": "^4.21.2",
     "mongoose": "^8.9.2",
     "puppeteer": "^23.11.1",
-    "world-countries": "^5.0.0"
+    "world-countries": "^5.0.0",
+    "helmet": "^7.1.0",
+    "express-rate-limit": "^7.1.5"
   },
   "devDependencies": {
     "nodemon": "^3.1.7"
