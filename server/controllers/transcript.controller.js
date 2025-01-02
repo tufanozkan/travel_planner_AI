@@ -100,48 +100,7 @@ const getTranscriptsByLocation = async (req, res) => {
   }
 };
 
-// Video ID'ye göre transcript getir
-const getTranscriptByVideoId = async (req, res) => {
-  try {
-    const { videoId } = req.params;
-
-    // Tüm koleksiyonlarda ara
-    const collections = await mongoose.connection.db
-      .listCollections()
-      .toArray();
-    let transcript = null;
-
-    for (const collection of collections) {
-      const TranscriptModel = getTranscriptModel(collection.name);
-      transcript = await TranscriptModel.findOne({ videoId });
-      if (transcript) break;
-    }
-
-    if (!transcript) {
-      return res.status(404).json({
-        success: false,
-        message: "Transcript bulunamadı",
-        videoId,
-      });
-    }
-
-    return res.status(200).json({
-      success: true,
-      message: "Transcript başarıyla getirildi",
-      data: transcript,
-    });
-  } catch (error) {
-    console.error("Transcript getirilirken hata:", error);
-    return res.status(500).json({
-      success: false,
-      message: "Transcript getirilirken hata oluştu",
-      error: error.message,
-    });
-  }
-};
-
 module.exports = {
   saveTranscript,
   getTranscriptsByLocation,
-  getTranscriptByVideoId,
 };

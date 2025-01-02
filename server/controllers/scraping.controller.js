@@ -1,6 +1,8 @@
 const puppeteer = require("puppeteer");
 const { countries } = require("countries-list");
 const cities = require("cities.json");
+const { spawn } = require("child_process");
+const path = require("path");
 
 // Türkiye'nin 81 ili
 const turkishCities = [
@@ -233,6 +235,47 @@ const extractLocation = (title) => {
   return null;
 };
 
+// NLP işlemi için yardımcı fonksiyon
+const processWithNLP = async (text) => {
+  return new Promise((resolve, reject) => {
+    const scriptPath = path.join(
+      __dirname,
+      "../python_scripts/entity_extractor.py"
+    );
+    const pythonPath = path.join(
+      __dirname,
+      "../python_scripts/venv/bin/python"
+    );
+
+    const pythonProcess = spawn(pythonPath, [scriptPath]);
+    let result = "";
+    let error = "";
+
+    pythonProcess.stdout.on("data", (data) => {
+      result += data.toString();
+    });
+
+    pythonProcess.stderr.on("data", (data) => {
+      error += data.toString();
+    });
+
+    pythonProcess.on("close", (code) => {
+      if (code !== 0) {
+        reject(new Error(`NLP processing failed: ${error}`));
+      } else {
+        try {
+          resolve(JSON.parse(result));
+        } catch (e) {
+          reject(new Error(`JSON parse error: ${e.message}`));
+        }
+      }
+    });
+
+    pythonProcess.stdin.write(JSON.stringify({ text }));
+    pythonProcess.stdin.end();
+  });
+};
+
 const scrapeTranscript = async (req, res) => {
   let browser;
   try {
@@ -338,16 +381,35 @@ const scrapeTranscript = async (req, res) => {
     // Transkript metinlerini birleştir
     const combinedTranscript = transcript.map((item) => item.text).join(" ");
 
-    return res.status(200).json({
-      success: true,
-      message: "Transcript başarıyla alındı",
-      data: {
-        videoId,
-        transcript: combinedTranscript,
-        title,
-        location,
-      },
-    });
+    // NLP analizi yap
+    try {
+      const nlpResults = await processWithNLP(combinedTranscript);
+
+      return res.status(200).json({
+        success: true,
+        message: "Transcript ve varlık analizi başarıyla alındı",
+        data: {
+          videoId,
+          transcript: combinedTranscript,
+          title,
+          location,
+          nlpAnalysis: nlpResults,
+        },
+      });
+    } catch (nlpError) {
+      console.error("NLP işlemi sırasında hata:", nlpError);
+      return res.status(200).json({
+        success: true,
+        message: "Transcript alındı fakat NLP analizi başarısız oldu",
+        data: {
+          videoId,
+          transcript: combinedTranscript,
+          title,
+          location,
+        },
+        nlpError: nlpError.message,
+      });
+    }
   } catch (error) {
     console.error("Hata:", error);
     if (browser) {
