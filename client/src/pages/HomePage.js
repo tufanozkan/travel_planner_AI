@@ -69,7 +69,7 @@ const HomePage = () => {
           color: "#ffffff", // Beyaz metin
         }}
       >
-        Hayalindeki Rotayı Keşfetmeye Hazır mısın!?
+        Hayalindeki Rotayı Keşfetmeye Hazır mısın? YOLA ÇIK!
       </Typography>
       <SearchBar
         placeholder="Nereye gitmek istersiniz?"
