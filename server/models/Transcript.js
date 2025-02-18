@@ -15,18 +15,14 @@ const transcriptSchema = new mongoose.Schema({
     required: true,
     index: true,
   },
-  transcript: [
-    {
-      time: {
-        type: String,
-        required: true,
-      },
-      text: {
-        type: String,
-        required: true,
-      },
-    },
-  ],
+  transcript: {
+    type: String,
+    required: true,
+  },
+  nlpAnalysis: {
+    type: Object,
+    required: true,
+  },
   createdAt: {
     type: Date,
     default: Date.now,

@@ -1,6 +1,16 @@
+# For entity_extractor.py
 spacy==3.7.2
-python-dotenv==1.0.0
 transformers==4.38.2
 torch==2.2.1
 seqeval==1.2.2
-nltk==3.8.1 
+nltk==3.8.1
+
+# For mongo_to_pinecone.py
+python-dotenv==1.0.0
+pymongo==4.11.1
+pinecone-client==5.0.1
+tqdm==4.67.1
+
+# Additional spaCy model
+# After installing requirements, run:
+# python -m spacy download en_core_web_sm

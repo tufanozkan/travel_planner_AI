@@ -3,6 +3,8 @@ const { countries } = require("countries-list");
 const cities = require("cities.json");
 const { spawn } = require("child_process");
 const path = require("path");
+const mongoose = require("mongoose");
+const { getTranscriptModel } = require("../models/Transcript");
 
 // Türkiye'nin 81 ili
 const turkishCities = [
@@ -385,17 +387,54 @@ const scrapeTranscript = async (req, res) => {
     try {
       const nlpResults = await processWithNLP(combinedTranscript);
 
-      return res.status(200).json({
-        success: true,
-        message: "Transcript ve varlık analizi başarıyla alındı",
-        data: {
-          videoId,
-          transcript: combinedTranscript,
-          title,
-          location,
-          nlpAnalysis: nlpResults,
-        },
-      });
+      // MongoDB'ye kaydetme işlemi
+      if (location) {
+        try {
+          // Lokasyona göre model al
+          const TranscriptModel = getTranscriptModel(location);
+
+          // Yeni transcript dökümanı oluştur
+          const transcriptDoc = new TranscriptModel({
+            videoId,
+            title,
+            location,
+            transcript: combinedTranscript,
+            nlpAnalysis: JSON.stringify(nlpResults), // NLP sonuçlarını string'e çevir
+          });
+
+          // MongoDB'ye kaydet
+          await transcriptDoc.save();
+
+          return res.status(200).json({
+            success: true,
+            message: "Transcript başarıyla kaydedildi",
+            data: {
+              videoId,
+              transcript: combinedTranscript,
+              title,
+              location,
+              nlpAnalysis: nlpResults,
+            },
+          });
+        } catch (dbError) {
+          console.error("MongoDB kayıt hatası:", dbError);
+          return res.status(500).json({
+            success: false,
+            message: "Transcript kaydedilirken bir hata oluştu",
+            error: dbError.message,
+          });
+        }
+      } else {
+        return res.status(400).json({
+          success: false,
+          message: "Konum bilgisi bulunamadı",
+          data: {
+            videoId,
+            title,
+            transcript: combinedTranscript,
+          },
+        });
+      }
     } catch (nlpError) {
       console.error("NLP işlemi sırasında hata:", nlpError);
       return res.status(200).json({

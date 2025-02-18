@@ -121,51 +121,39 @@ def extract_entities_with_spacy(text):
 
 def combine_entity_results(bert_results, spacy_results):
     """
-    BERT-NER ve spaCy sonuçlarını birleştir
+    BERT-NER ve spaCy sonuçlarını birleştir ve her entity için ilgili cümleyi tek bir kez ekle.
     """
-    combined_entities = {
-        "ORG": [],      # Organizasyonlar
-        "LOC": [],      # Lokasyonlar
-        "PER": [],      # Kişiler
-        "FAC": [],      # Yapılar
-        "PRODUCT": [],  # Ürünler
-        "WORK_OF_ART": [], # Sanat eserleri
-        "EVENT": [],    # Etkinlikler
-        "MISC": []      # Diğer
-    }
-    
+    combined_entities = {}
     combined_sentences = {}
-    
+
     # BERT sonuçlarını ekle
     bert_entities, bert_sentences = bert_results
     for key in bert_entities:
-        if key in combined_entities:
-            combined_entities[key].extend(bert_entities[key])
-            if key in bert_sentences:
-                if key not in combined_sentences:
-                    combined_sentences[key] = []
-                combined_sentences[key].extend(bert_sentences[key])
-    
+        combined_entities.setdefault(key, []).extend(bert_entities[key])
+        if key in bert_sentences:
+            combined_sentences.setdefault(key, {})
+            for entity, sentence in zip(bert_entities[key], bert_sentences[key]):
+                if entity not in combined_sentences[key]:
+                    combined_sentences[key][entity] = sentence + "\n\n"
+
     # spaCy sonuçlarını ekle
     spacy_entities, spacy_sentences = spacy_results
     for key in spacy_entities:
-        if key in combined_entities:
-            combined_entities[key].extend(spacy_entities[key])
-            if key in spacy_sentences:
-                if key not in combined_sentences:
-                    combined_sentences[key] = []
-                combined_sentences[key].extend(spacy_sentences[key])
-    
+        combined_entities.setdefault(key, []).extend(spacy_entities[key])
+        if key in spacy_sentences:
+            combined_sentences.setdefault(key, {})
+            for entity, sentence in zip(spacy_entities[key], spacy_sentences[key]):
+                if entity not in combined_sentences[key]:
+                    combined_sentences[key][entity] = sentence + "\n\n"
+
     # Tekrar eden öğeleri kaldır
     for key in combined_entities:
         combined_entities[key] = list(set(combined_entities[key]))
-        if key in combined_sentences:
-            combined_sentences[key] = list(set(combined_sentences[key]))
-    
+
     return {
-        "entities": combined_entities,
-        "contexts": combined_sentences
+        "entities_context": combined_sentences  # Her entity için tek bir örnek cümle
     }
+
 
 if __name__ == "__main__":
     # Stdin'den JSON formatında metin al
