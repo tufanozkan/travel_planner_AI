@@ -4,7 +4,7 @@ require("dotenv").config();
 const connectDB = async () => {
   try {
     const conn = await mongoose.connect(process.env.MONGODB_URI, {
-      dbName: "turkey",
+      dbName: "england",
     });
     console.log(`MongoDB Atlas Bağlantısı Başarılı: ${conn.connection.host}`);
   } catch (error) {
