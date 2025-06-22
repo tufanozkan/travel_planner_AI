@@ -38,8 +38,8 @@ const Header = () => {
     <AppBar
       position="static"
       sx={{
-        backgroundColor: "#12293d", // color1
-        borderBottom: "2px solid #12465f", // color2
+        backgroundColor: "#C6E7FF", // color1
+        borderBottom: "2px solid #D4F6FF", // color2
       }}
     >
       <Toolbar
@@ -53,11 +53,11 @@ const Header = () => {
           <Button
             onClick={handleLoginOpen}
             sx={{
-              color: "#20dbd8", // color5
+              color: "#12293d", // koyu metin
               fontFamily: "Poppins, sans-serif",
               fontWeight: "600",
               textTransform: "uppercase",
-              "&:hover": { backgroundColor: "#12465f" }, // color2
+              "&:hover": { backgroundColor: "#D4F6FF" }, // hover
             }}
           >
             Login
@@ -69,7 +69,7 @@ const Header = () => {
           variant="h5"
           component="div"
           sx={{
-            color: "#20dbd8", // color5
+            color: "#12293d", // koyu metin
             fontFamily: "Poppins, sans-serif",
             fontWeight: "700",
             textTransform: "uppercase",
@@ -86,11 +86,11 @@ const Header = () => {
           <Button
             onClick={handleSignupOpen}
             sx={{
-              color: "#20dbd8", // color5
+              color: "#12293d", // koyu metin
               fontFamily: "Poppins, sans-serif",
               fontWeight: "600",
               textTransform: "uppercase",
-              "&:hover": { backgroundColor: "#12465f" }, // color2
+              "&:hover": { backgroundColor: "#D4F6FF" },
             }}
           >
             Sign Up
@@ -109,11 +109,11 @@ const Header = () => {
               onClose={handleClose}
               PaperProps={{
                 sx: {
-                  backgroundColor: "#12293d", // color1
-                  color: "#20dbd8", // color5
+                  backgroundColor: "#C6E7FF", // color1
+                  color: "#12293d", // koyu metin
                   "& .MuiMenuItem-root": {
                     fontFamily: "Poppins, sans-serif",
-                    "&:hover": { backgroundColor: "#12465f" },
+                    "&:hover": { backgroundColor: "#D4F6FF" },
                   },
                 },
               }}
@@ -137,11 +137,11 @@ const Header = () => {
           sx={{
             p: 2,
             width: "300px",
-            backgroundColor: "#12293d", // color1
-            color: "#20dbd8", // color5
+            backgroundColor: "#FBFBFB", // popover arka plan
+            color: "#12293d", // metin
           }}
         >
-          <Typography variant="h6" sx={{ mb: 2, color: "#1aa3b5" }}>
+          <Typography variant="h6" sx={{ mb: 2, color: "#FFDDae" }}>
             Login
           </Typography>
           <TextField
@@ -151,8 +151,8 @@ const Header = () => {
             type="email"
             sx={{
               mb: 2,
-              input: { color: "#146f87" },
-              label: { color: "#146f87" },
+              input: { color: "#12293d" },
+              label: { color: "#12293d" },
             }}
           />
           <TextField
@@ -162,22 +162,22 @@ const Header = () => {
             type="password"
             sx={{
               mb: 2,
-              input: { color: "#146f87" },
-              label: { color: "#146f87" },
+              input: { color: "#12293d" },
+              label: { color: "#12293d" },
             }}
           />
           <Button
             type="submit"
             fullWidth
             variant="contained"
-            sx={{ mb: 2, backgroundColor: "#12465f" }}
+            sx={{ mb: 2, backgroundColor: "#FFDDae", color: "#12293d" }}
           >
             Login
           </Button>
           <Button
             fullWidth
             variant="outlined"
-            sx={{ color: "#1aa3b5", borderColor: "#1aa3b5" }}
+            sx={{ color: "#FFDDae", borderColor: "#FFDDae" }}
           >
             Google ile Giriş
           </Button>
@@ -196,11 +196,11 @@ const Header = () => {
           sx={{
             p: 2,
             width: "300px",
-            backgroundColor: "#12293d", // color1
-            color: "#20dbd8", // color5
+            backgroundColor: "#FBFBFB", // popover arka plan
+            color: "#12293d", // metin
           }}
         >
-          <Typography variant="h6" sx={{ mb: 2, color: "#1aa3b5" }}>
+          <Typography variant="h6" sx={{ mb: 2, color: "#FFDDae" }}>
             Sign Up
           </Typography>
           <TextField
@@ -209,8 +209,8 @@ const Header = () => {
             name="name"
             sx={{
               mb: 2,
-              input: { color: "#146f87" },
-              label: { color: "#146f87" },
+              input: { color: "#12293d" },
+              label: { color: "#12293d" },
             }}
           />
           <TextField
@@ -219,8 +219,8 @@ const Header = () => {
             name="surname"
             sx={{
               mb: 2,
-              input: { color: "#146f87" },
-              label: { color: "#146f87" },
+              input: { color: "#12293d" },
+              label: { color: "#12293d" },
             }}
           />
           <TextField
@@ -230,8 +230,8 @@ const Header = () => {
             type="email"
             sx={{
               mb: 2,
-              input: { color: "#146f87" },
-              label: { color: "#146f87" },
+              input: { color: "#12293d" },
+              label: { color: "#12293d" },
             }}
           />
           <TextField
@@ -241,22 +241,22 @@ const Header = () => {
             type="password"
             sx={{
               mb: 2,
-              input: { color: "#146f87" },
-              label: { color: "#146f87" },
+              input: { color: "#12293d" },
+              label: { color: "#12293d" },
             }}
           />
           <Button
             type="submit"
             fullWidth
             variant="contained"
-            sx={{ mb: 2, backgroundColor: "#12465f" }}
+            sx={{ mb: 2, backgroundColor: "#FFDDae", color: "#12293d" }}
           >
             Sign Up
           </Button>
           <Button
             fullWidth
             variant="outlined"
-            sx={{ color: "#1aa3b5", borderColor: "#1aa3b5" }}
+            sx={{ color: "#FFDDae", borderColor: "#FFDDae" }}
           >
             Google ile Kayıt
           </Button>

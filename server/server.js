@@ -4,6 +4,7 @@ const cors = require("cors");
 const connectDB = require("./config/db.config");
 const transcriptRoutes = require("./routes/transcript.routes");
 const scrapingRoutes = require("./routes/scraping.routes");
+const searchRoutes = require("./routes/search.route");
 
 // Express app oluştur
 const app = express();
@@ -18,6 +19,7 @@ app.use(express.json());
 // Routes
 app.use("/api/transcripts", transcriptRoutes);
 app.use("/api/scrape", scrapingRoutes);
+app.use("/api/search", searchRoutes);
 
 // 404 handler
 app.use((req, res, next) => {
