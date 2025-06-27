@@ -129,11 +129,27 @@ const HomePage = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
-      await axios.post("/api/search", form);
+      const formData = {
+        location: form.search, // search field contains the location
+        budget: form.budget,
+        personCount: form.personCount,
+        interests: form.interests,
+        holidayDays: form.holidayDays,
+      };
+
+      console.log("Gönderilen veri:", formData);
+
+      const response = await axios.post("/api/search", formData);
+      console.log("Sunucu yanıtı:", response.data);
+
       // Başarılı gönderim sonrası yapılacaklar
+      if (response.data.data && response.data.data.response) {
+        alert("Seyahat önerileri başarıyla alındı! Konsolu kontrol edin.");
+      }
     } catch (err) {
       // Hata yönetimi
-      console.error(err);
+      console.error("Hata:", err.response?.data || err.message);
+      alert("Bir hata oluştu. Lütfen konsolu kontrol edin.");
     }
   };
 

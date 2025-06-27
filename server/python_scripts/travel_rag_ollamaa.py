@@ -1,5 +1,5 @@
 import openai
-from pinecone import Pinecone
+import pinecone
 import requests
 import json
 import re
@@ -7,6 +7,7 @@ from typing import List, Dict, Tuple
 import nltk
 from nltk.tokenize import sent_tokenize
 import time
+import sys
 
 # Download NLTK data if not available
 try:
@@ -32,7 +33,7 @@ class TravelRAGWithOllama:
         if not pinecone_api_key:
             raise RuntimeError("Please set the PINECONE_API_KEY environment variable")
         
-        self.pc = Pinecone(api_key=pinecone_api_key)
+        self.pc = pinecone.Pinecone(api_key=pinecone_api_key)
         self.index = self.pc.Index('travelplaner')
         self.namespace = "england_londons"
         
@@ -161,30 +162,20 @@ class TravelRAGWithOllama:
         """
         Retrieve relevant context for the user query
         """
-        print(f"🔍 Processing query: {user_query}\n")
-        
         # Split query into sentences
         sentences = self.chunk_user_input(user_query)
-        print(f"📝 Split into {len(sentences)} sentences:")
-        for i, sentence in enumerate(sentences, 1):
-            print(f"  {i}. {sentence}")
-        print()
         
         all_results = []
         seen_ids = set()  # Prevent duplicates
         
         # Process each sentence
         for i, sentence in enumerate(sentences):
-            print(f"⚡ Processing sentence {i+1}: {sentence[:50]}...")
-            
             try:
                 # Create embedding
                 sentence_embedding = self.embed_text(sentence)
                 
                 # Search for similar content
                 matches = self.search_similar_content(sentence_embedding, top_k_per_sentence)
-                
-                print(f"📊 Found {len(matches)} matches for sentence {i+1}")
                 
                 # Process results and filter duplicates
                 for match in matches:
@@ -207,43 +198,54 @@ class TravelRAGWithOllama:
                 time.sleep(0.1)
                 
             except Exception as e:
-                print(f"❌ Error processing sentence {i+1}: {e}")
                 continue
         
         # Sort by score and return top results
         all_results.sort(key=lambda x: x['score'], reverse=True)
-        final_results = all_results[:max_total_results]
-        
-        print(f"✅ Retrieved top {len(final_results)} relevant contexts\n")
-        return final_results
+        return all_results[:max_total_results]
     
-    def generate_response_with_ollama(self, user_query: str, context: List[Dict]) -> str:
+    def generate_response_with_ollama(self, user_query: str, context: List[Dict], travel_params: Dict = None) -> str:
         """
-        Generate response using Ollama LLM with retrieved context
+        Generate response using Ollama LLM with retrieved context and travel parameters
         """
-        print(f"🔍 Preparing context from {len(context)} sources...")
-        
         # Prepare context for the prompt
         context_text = ""
         for i, item in enumerate(context[:5], 1):  # Limit to top 5 contexts
             context_text += f"Source {i}: {item['entity']}\n"
             context_text += f"Info: {item['text'][:200]}...\n\n"
         
-        # Simplified and more direct prompt
-        prompt = f"""You are a helpful travel assistant for London and England. Based on the travel information provided, answer the user's question in a friendly and informative way.
+        # Create a detailed prompt using travel parameters if available
+        travel_params_text = ""
+        if travel_params:
+            travel_params_text = f"""
+Travel Parameters:
+- Location: {travel_params.get('location', 'Not specified')}
+- Budget: {travel_params.get('budget', 'Not specified')}
+- Number of People: {travel_params.get('personCount', 'Not specified')}
+- Interests: {', '.join(travel_params.get('interests', [])) if isinstance(travel_params.get('interests'), list) else travel_params.get('interests', 'Not specified')}
+- Duration: {travel_params.get('holidayDays', 'Not specified')} days
+"""
 
-User Question: {user_query}
+        # Enhanced prompt with travel parameters
+        prompt = f"""You are a helpful travel assistant for London and England. Based on the travel information and specific requirements provided, create a detailed and personalized travel recommendation.
+
+User Query: {user_query}
+
+{travel_params_text}
 
 Travel Information:
 {context_text}
 
-Please provide a helpful travel recommendation in English. Be specific and practical."""
+Please provide a comprehensive travel recommendation that considers:
+1. The specified budget and trip duration
+2. Activities and attractions suitable for the group size
+3. Experiences matching the stated interests
+4. Practical tips for maximizing the budget
+5. Suggested daily itinerary breakdown
+
+Respond in a friendly and informative way, being specific and practical with your suggestions."""
 
         try:
-            print("🤖 Generating response with Ollama...")
-            print(f"📝 Using model: {self.model_name}")
-            
-            # Test with a simple request first
             response = requests.post(
                 f"{self.ollama_base_url}/api/generate",
                 json={
@@ -252,62 +254,74 @@ Please provide a helpful travel recommendation in English. Be specific and pract
                     "stream": False,
                     "options": {
                         "temperature": 0.7,
-                        "num_predict": 500
+                        "num_predict": 800
                     }
                 },
-                timeout=120
+                timeout=180
             )
-            
-            print(f"📊 Response status code: {response.status_code}")
             
             if response.status_code == 200:
                 result = response.json()
                 ai_response = result.get('response', '').strip()
                 
                 if ai_response:
-                    print("✅ Response generated successfully!")
                     return ai_response
                 else:
                     return "I received an empty response. Let me try to help you with general travel advice for London."
             else:
-                print(f"❌ Error response: {response.text}")
                 return f"Sorry, I encountered an error (HTTP {response.status_code}). Please try again."
                 
         except requests.exceptions.Timeout:
-            print("⏰ Request timed out")
             return "The response generation took too long. Please try again with a simpler query."
         except requests.exceptions.ConnectionError:
-            print("🔌 Connection error")
             return "Cannot connect to the AI model. Please ensure Ollama is running properly."
         except Exception as e:
-            print(f"💥 Unexpected error: {str(e)}")
             return f"An unexpected error occurred: {str(e)}"
     
-    def get_travel_recommendations(self, user_query: str) -> Dict:
+    def get_travel_recommendations(self, user_query: str, travel_params: Dict = None) -> Dict:
         """
         Main method to get travel recommendations using RAG + Ollama
         """
         print("🚀 Starting Travel RAG + Ollama Process...")
         print("=" * 80)
         
+        # Create enhanced query using travel parameters
+        enhanced_query = user_query
+        if travel_params:
+            interests = travel_params.get('interests', [])
+            if isinstance(interests, str):
+                interests = [interests]
+            
+            location = travel_params.get('location', '')
+            if location:
+                enhanced_query = f"{enhanced_query} in {location}"
+            
+            if interests:
+                interests_str = ', '.join(interests)
+                enhanced_query = f"{enhanced_query} with interests in {interests_str}"
+        
         # Step 1: Retrieve relevant context
-        context = self.retrieve_context(user_query)
+        context = self.retrieve_context(enhanced_query)
         
         if not context:
             return {
                 'query': user_query,
+                'enhanced_query': enhanced_query,
                 'context_found': False,
+                'travel_params': travel_params,
                 'response': "I couldn't find specific information in my database for your query. However, I'd be happy to provide general travel advice for London/England. Could you please be more specific about what you're looking for?"
             }
         
-        # Step 2: Generate response using Ollama
-        response = self.generate_response_with_ollama(user_query, context)
+        # Step 2: Generate response using Ollama with travel parameters
+        response = self.generate_response_with_ollama(user_query, context, travel_params)
         
         return {
             'query': user_query,
+            'enhanced_query': enhanced_query,
             'context_found': True,
             'num_contexts': len(context),
             'context_details': context,
+            'travel_params': travel_params,
             'response': response
         }
     
@@ -339,112 +353,43 @@ def main():
     Main function to run the Travel RAG + Ollama system
     """
     try:
-        # Initialize the system
-        print("🔧 Initializing Travel RAG + Ollama System...")
-        
-        # Test Ollama connection first
-        test_response = requests.get("http://localhost:11434/api/tags", timeout=5)
-        if test_response.status_code != 200:
-            print("❌ Cannot connect to Ollama. Please ensure it's running.")
-            return
-        
-        models = test_response.json().get('models', [])
-        print(f"📋 Available Ollama models: {[m['name'] for m in models]}")
-        
-        rag_system = TravelRAGWithOllama()
-        print("✅ System initialized successfully!\n")
-        
-        # Simple test first
-        print("🧪 Testing Ollama with simple query...")
-        test_response = requests.post(
-            "http://localhost:11434/api/generate",
-            json={
-                "model": rag_system.model_name,
-                "prompt": "Hello, please respond with 'AI is working' in English.",
-                "stream": False
-            },
-            timeout=30
-        )
-        
-        if test_response.status_code == 200:
-            test_result = test_response.json()
-            print(f"✅ Ollama test successful: {test_result.get('response', 'No response')}")
+        import sys
+        import json
+
+        # Check if running from command line with arguments
+        if len(sys.argv) > 2:
+            user_query = sys.argv[1]
+            travel_params = json.loads(sys.argv[2])
+            
+            # Initialize the system
+            rag_system = TravelRAGWithOllama()
+            
+            # Get recommendations
+            result = rag_system.get_travel_recommendations(user_query, travel_params)
+            
+            # Print only the JSON result
+            print(json.dumps(result, ensure_ascii=False))
+            sys.exit(0)
+            
         else:
-            print(f"❌ Ollama test failed: {test_response.status_code}")
-            print(f"Response: {test_response.text}")
-        
-        # Sample test queries
-        test_queries = [
-            "I want to visit historical places in London and try local food",
-            "Looking for outdoor activities and nature spots near London",
-            "I'm interested in museums and cultural experiences in England",
-            "Planning a budget trip to London with family, need kid-friendly places",
-            "What are the best neighborhoods to stay in London for first-time visitors?"
-        ]
-        
-        print("\n🌍 TRAVEL RAG + OLLAMA SYSTEM")
-        print("=" * 50)
-        
-        while True:
-            print("\n📋 Options:")
-            print("1. Enter custom travel query")
-            print("2. Test with sample queries")
-            print("3. Test Ollama connection")
-            print("4. Exit")
+            # Interactive mode for testing
+            rag_system = TravelRAGWithOllama()
             
-            choice = input("\n🔢 Choose an option (1-4): ").strip()
-            
-            if choice == "1":
-                user_query = input("\n✈️  Enter your travel query: ").strip()
-                if user_query:
-                    result = rag_system.get_travel_recommendations(user_query)
-                    rag_system.print_formatted_response(result)
-            
-            elif choice == "2":
-                print("\n🧪 Testing with sample queries...\n")
-                for i, query in enumerate(test_queries, 1):
-                    print(f"\n{'='*60}")
-                    print(f"🧪 TEST QUERY {i}")
-                    print(f"{'='*60}")
+            while True:
+                user_query = input("\nEnter your query (or 'exit' to quit): ")
+                if user_query.lower() == 'exit':
+                    break
                     
-                    result = rag_system.get_travel_recommendations(query)
-                    rag_system.print_formatted_response(result)
-                    
-                    if i < len(test_queries):
-                        input("\n⏸️  Press Enter to continue to next test...")
-            
-            elif choice == "3":
-                print("\n🔧 Testing Ollama connection...")
-                try:
-                    test_resp = requests.post(
-                        "http://localhost:11434/api/generate",
-                        json={
-                            "model": rag_system.model_name,
-                            "prompt": "Say 'Connection test successful!' in English.",
-                            "stream": False
-                        },
-                        timeout=20
-                    )
-                    if test_resp.status_code == 200:
-                        result = test_resp.json()
-                        print(f"✅ Test Response: {result.get('response', 'No response')}")
-                    else:
-                        print(f"❌ Test failed: HTTP {test_resp.status_code}")
-                        print(f"Response body: {test_resp.text}")
-                except Exception as e:
-                    print(f"❌ Connection test error: {e}")
-            
-            elif choice == "4":
-                print("👋 Goodbye! Happy travels!")
-                break
-            
-            else:
-                print("❌ Invalid choice. Please select 1, 2, 3, or 4.")
+                result = rag_system.get_travel_recommendations(user_query)
+                print(json.dumps(result, ensure_ascii=False, indent=2))
     
     except Exception as e:
-        print(f"❌ Unexpected error: {e}")
-        import traceback
-        traceback.print_exc()
+        error_response = {
+            "error": str(e),
+            "status": "error"
+        }
+        print(json.dumps(error_response, ensure_ascii=False))
+        sys.exit(1)
 
 if __name__ == "__main__":
     main()
