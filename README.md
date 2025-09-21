@@ -370,7 +370,7 @@ This project is licensed under the MIT License - see the `LICENSE` file for deta
 For questions about this project:
 
 - Use GitHub Issues
-- Email: [your-email@example.com]
+- Email: [tuf.ozkan@gmail.com]
 
 ---
 
