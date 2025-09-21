@@ -1,99 +1,99 @@
 # 🧳 Travel Planner AI
 
-**Yapay Zeka Destekli Akıllı Seyahat Planlama Sistemi**
+**Intelligent AI-Powered Travel Planning System**
 
-Bu proje, kullanıcıların seyahat tercihlerine göre kişiselleştirilmiş seyahat önerileri sunan kapsamlı bir AI destekli seyahat planlama platformudur. Sistem, YouTube videolarından elde edilen seyahat içeriklerini analiz ederek, RAG (Retrieval-Augmented Generation) teknolojisi ve Ollama LLM entegrasyonu ile akıllı öneriler üretir.
+A comprehensive AI-driven travel planning platform that delivers personalized travel recommendations based on user preferences. The system leverages advanced natural language processing, RAG (Retrieval-Augmented Generation) technology, and Ollama LLM integration to analyze travel content from YouTube videos and generate intelligent, context-aware recommendations.
 
-## 🚀 Özellikler
+## 🚀 Features
 
-### 🎯 Ana Özellikler
+### 🎯 Core Capabilities
 
-- **Kişiselleştirilmiş Seyahat Önerileri**: Bütçe, kişi sayısı, ilgi alanları ve süreye göre özelleştirilmiş öneriler
-- **AI Destekli İçerik Analizi**: YouTube videolarından otomatik transcript çıkarma ve NLP analizi
-- **RAG Teknolojisi**: Pinecone vektör veritabanı ile gelişmiş bilgi erişimi
-- **Çoklu Dil Desteği**: Türkçe ve İngilizce içerik desteği
-- **Gerçek Zamanlı Veri İşleme**: Canlı veri çekme ve analiz
+- **Personalized Travel Recommendations**: Customized suggestions based on budget, group size, interests, and duration
+- **AI-Powered Content Analysis**: Automated transcript extraction from YouTube videos with advanced NLP processing
+- **RAG Technology Integration**: Enhanced information retrieval using Pinecone vector database
+- **Multi-Language Support**: Comprehensive Turkish and English content processing
+- **Real-Time Data Processing**: Live content extraction and intelligent analysis
 
-### 🛠️ Teknik Özellikler
+### 🛠️ Technical Architecture
 
-- **Modern Frontend**: React 18 + Material-UI ile responsive tasarım
-- **Güçlü Backend**: Node.js + Express.js API servisi
-- **AI/ML Pipeline**: Python tabanlı NLP ve embedding işlemleri
-- **Vektör Veritabanı**: Pinecone ile semantik arama
-- **NoSQL Veritabanı**: MongoDB Atlas ile esnek veri saklama
-- **Web Scraping**: Puppeteer ile YouTube transcript çıkarma
+- **Modern Frontend Stack**: React 18 with Material-UI for responsive, component-based design
+- **Robust Backend Infrastructure**: Node.js + Express.js RESTful API architecture
+- **Advanced AI/ML Pipeline**: Python-based NLP processing with spaCy, BERT, and NLTK
+- **Vector Database Integration**: Pinecone for high-performance semantic search and similarity matching
+- **Scalable NoSQL Database**: MongoDB Atlas for flexible document storage and retrieval
+- **Intelligent Web Scraping**: Puppeteer-based automated content extraction from YouTube
 
-## 📁 Proje Yapısı
+## 📁 Project Structure
 
 ```
 travelplanner_ai/
-├── client/                     # React Frontend
+├── client/                     # React Frontend Application
 │   ├── src/
-│   │   ├── components/         # UI Bileşenleri
-│   │   │   └── Header.js      # Ana navigasyon
-│   │   ├── pages/             # Sayfa Bileşenleri
-│   │   │   └── HomePage.js    # Ana seyahat formu
-│   │   ├── App.js             # Ana uygulama
-│   │   └── index.js           # Giriş noktası
-│   └── package.json           # Frontend bağımlılıkları
-├── server/                     # Node.js Backend
+│   │   ├── components/         # Reusable UI Components
+│   │   │   └── Header.js      # Main navigation component
+│   │   ├── pages/             # Page Components
+│   │   │   └── HomePage.js    # Primary travel planning form
+│   │   ├── App.js             # Main application component
+│   │   └── index.js           # Application entry point
+│   └── package.json           # Frontend dependencies
+├── server/                     # Node.js Backend Service
 │   ├── config/
-│   │   └── db.config.js       # MongoDB bağlantı yapılandırması
-│   ├── controllers/           # API Controller'ları
-│   │   ├── scraping.controller.js  # YouTube scraping
-│   │   └── transcript.controller.js # Transcript yönetimi
+│   │   └── db.config.js       # MongoDB connection configuration
+│   ├── controllers/           # API Controllers
+│   │   ├── scraping.controller.js  # YouTube content scraping
+│   │   └── transcript.controller.js # Transcript management
 │   ├── middleware/
-│   │   └── security.js        # Güvenlik middleware'leri
+│   │   └── security.js        # Security middleware
 │   ├── models/
-│   │   └── Transcript.js      # MongoDB şema tanımları
-│   ├── routes/                # API Rotaları
-│   │   ├── scraping.routes.js # Scraping endpoint'leri
-│   │   ├── search.route.js    # Ana arama API'si
-│   │   └── transcript.routes.js # Transcript API'si
-│   ├── python_scripts/        # AI/ML İşlemleri
-│   │   ├── entity_extractor.py      # NLP entity çıkarma
-│   │   ├── mongodb_pinecone_embeddings.py # Vektör oluşturma
-│   │   ├── travel_rag_ollamaa.py    # RAG + Ollama entegrasyonu
-│   │   ├── requirements.txt         # Python bağımlılıkları
-│   │   └── venv/                    # Python sanal ortamı
-│   ├── server.js              # Ana sunucu dosyası
-│   └── package.json           # Backend bağımlılıkları
-└── README.md                  # Bu dosya
+│   │   └── Transcript.js      # MongoDB schema definitions
+│   ├── routes/                # API Routes
+│   │   ├── scraping.routes.js # Scraping endpoints
+│   │   ├── search.route.js    # Main search API
+│   │   └── transcript.routes.js # Transcript API endpoints
+│   ├── python_scripts/        # AI/ML Processing Pipeline
+│   │   ├── entity_extractor.py      # NLP entity extraction
+│   │   ├── mongodb_pinecone_embeddings.py # Vector generation
+│   │   ├── travel_rag_ollamaa.py    # RAG + Ollama integration
+│   │   ├── requirements.txt         # Python dependencies
+│   │   └── venv/                    # Python virtual environment
+│   ├── server.js              # Main server file
+│   └── package.json           # Backend dependencies
+└── README.md                  # This file
 ```
 
-## 🛠️ Kurulum
+## 🛠️ Installation
 
-### Gereksinimler
+### Prerequisites
 
-- **Node.js** (v16 veya üzeri)
-- **Python** (v3.8 veya üzeri)
-- **MongoDB Atlas** hesabı
-- **Pinecone** hesabı
-- **OpenAI API** anahtarı
-- **Ollama** (yerel LLM için)
+- **Node.js** (v16 or higher)
+- **Python** (v3.8 or higher)
+- **MongoDB Atlas** account
+- **Pinecone** account
+- **OpenAI API** key
+- **Ollama** (for local LLM)
 
-### 1. Projeyi Klonlayın
+### 1. Clone the Repository
 
 ```bash
 git clone <repository-url>
 cd travelplanner_ai
 ```
 
-### 2. Backend Kurulumu
+### 2. Backend Setup
 
 ```bash
 cd server
 npm install
 ```
 
-### 3. Frontend Kurulumu
+### 3. Frontend Setup
 
 ```bash
 cd ../client
 npm install
 ```
 
-### 4. Python Ortamı Kurulumu
+### 4. Python Environment Setup
 
 ```bash
 cd ../server/python_scripts
@@ -103,53 +103,53 @@ pip install -r requirements.txt
 python -m spacy download en_core_web_sm
 ```
 
-### 5. Ortam Değişkenleri
+### 5. Environment Variables
 
-`.env` dosyası oluşturun:
+Create `.env` file:
 
 ```env
-# MongoDB
+# MongoDB Configuration
 MONGODB_URI=mongodb+srv://username:password@cluster.mongodb.net/
 
-# Pinecone
+# Pinecone Vector Database
 PINECONE_API_KEY=your_pinecone_api_key
 PINECONE_INDEX=travelplaner
 
-# OpenAI
+# OpenAI API
 OPENAI_API_KEY=your_openai_api_key
 
-# Server
+# Server Configuration
 PORT=5001
 NODE_ENV=development
 ```
 
-### 6. Ollama Kurulumu
+### 6. Ollama Installation
 
 ```bash
-# Ollama'yı indirin ve kurun
+# Install Ollama
 curl -fsSL https://ollama.ai/install.sh | sh
 
-# Llama3.2 modelini indirin
+# Pull Llama3.2 model
 ollama pull llama3.2
 ```
 
-## 🚀 Çalıştırma
+## 🚀 Running the Application
 
-### 1. Backend'i Başlatın
+### 1. Start Backend Server
 
 ```bash
 cd server
 npm run dev
 ```
 
-### 2. Frontend'i Başlatın
+### 2. Start Frontend Application
 
 ```bash
 cd client
 npm start
 ```
 
-### 3. Ollama'yı Başlatın
+### 3. Start Ollama Service
 
 ```bash
 ollama serve
@@ -157,28 +157,28 @@ ollama serve
 
 ## 🔧 API Endpoints
 
-### Arama API'si
+### Search API
 
 ```http
 POST /api/search
 Content-Type: application/json
 
 {
-  "location": "Londra",
-  "budget": "orta",
+  "location": "London",
+  "budget": "medium",
   "personCount": "2",
-  "interests": ["tarihi", "müze", "yemek"],
+  "interests": ["historical", "museums", "food"],
   "holidayDays": 5
 }
 ```
 
-### Transcript API'si
+### Transcript API
 
 ```http
 GET /api/scrape/transcript/{videoId}
 ```
 
-### Konum Bazlı Transcript'ler
+### Location-based Transcripts
 
 ```http
 GET /api/transcripts/location/{location}
@@ -186,38 +186,38 @@ GET /api/transcripts/location/{location}
 
 ## 🤖 AI/ML Pipeline
 
-### 1. Veri Toplama
+### 1. Data Collection
 
-- YouTube videolarından otomatik transcript çıkarma
-- Puppeteer ile web scraping
-- Türkçe ve İngilizce içerik desteği
+- Automated transcript extraction from YouTube videos
+- Puppeteer-based web scraping
+- Multi-language content support (Turkish & English)
 
-### 2. NLP Analizi
+### 2. NLP Analysis
 
-- **spaCy**: Named Entity Recognition (NER)
-- **BERT**: Gelişmiş entity çıkarma
-- **NLTK**: Metin işleme ve tokenization
+- **spaCy**: Named Entity Recognition (NER) with `en_core_web_lg` model
+- **BERT**: Advanced entity extraction using `dbmdz/bert-large-cased-finetuned-conll03-english`
+- **NLTK**: Text processing and tokenization with sentence segmentation
 
-### 3. Vektör Oluşturma
+### 3. Vector Generation
 
-- OpenAI Embeddings API ile metin vektörleştirme
-- Pinecone vektör veritabanında saklama
-- Semantik arama için optimizasyon
+- OpenAI Embeddings API (`text-embedding-ada-002`) for text vectorization
+- Pinecone vector database for storage and retrieval
+- Semantic search optimization with metadata filtering
 
-### 4. RAG Sistemi
+### 4. RAG System
 
-- Kullanıcı sorguları için context retrieval
-- Ollama LLM ile yanıt üretimi
-- Kişiselleştirilmiş seyahat önerileri
+- Context retrieval for user queries using vector similarity search
+- Ollama LLM integration for response generation
+- Personalized travel recommendations with parameter-based filtering
 
-## 📊 Veri Akışı
+## 📊 Data Flow Architecture
 
 ```mermaid
 graph TD
-    A[Kullanıcı Girişi] --> B[React Frontend]
+    A[User Input] --> B[React Frontend]
     B --> C[Node.js API]
     C --> D[Python RAG Script]
-    D --> E[Pinecone Search]
+    D --> E[Pinecone Vector Search]
     D --> F[Ollama LLM]
     E --> G[Context Retrieval]
     F --> H[Response Generation]
@@ -226,61 +226,62 @@ graph TD
     I --> B
 ```
 
-## 🎨 Frontend Özellikleri
+## 🎨 Frontend Features
 
-### UI/UX
+### UI/UX Design
 
-- **Material-UI**: Modern ve responsive tasarım
-- **Gradient Backgrounds**: Görsel çekicilik
-- **Form Validation**: Kullanıcı dostu hata yönetimi
-- **Mobile Responsive**: Tüm cihazlarda uyumlu
+- **Material-UI v5**: Modern, responsive component library
+- **Gradient Backgrounds**: Visually appealing design system
+- **Form Validation**: User-friendly error handling and validation
+- **Mobile Responsive**: Cross-device compatibility
 
-### Bileşenler
+### Component Architecture
 
-- **Header**: Navigasyon ve kullanıcı girişi
-- **HomePage**: Ana seyahat planlama formu
-- **SearchForm**: Gelişmiş arama parametreleri
+- **Header**: Navigation and user authentication interface
+- **HomePage**: Primary travel planning form with advanced filtering
+- **SearchForm**: Multi-parameter search with real-time validation
 
-## 🔒 Güvenlik
+## 🔒 Security Implementation
 
-- **CORS**: Cross-origin istekler için yapılandırma
-- **Rate Limiting**: API istekleri için sınırlama
-- **Input Validation**: Kullanıcı girişi doğrulama
-- **Error Handling**: Kapsamlı hata yönetimi
+- **CORS Configuration**: Cross-origin request handling
+- **Rate Limiting**: API request throttling with `express-rate-limit`
+- **Input Validation**: Comprehensive user input sanitization
+- **Error Handling**: Secure error management with `helmet` middleware
 
-## 📈 Performans Optimizasyonu
+## 📈 Performance Optimization
 
-- **Batch Processing**: Toplu veri işleme
-- **Caching**: Pinecone vektör cache'i
-- **Rate Limiting**: API kullanım optimizasyonu
-- **Async Processing**: Asenkron veri işleme
+- **Batch Processing**: Efficient bulk data processing
+- **Vector Caching**: Pinecone vector database caching
+- **Rate Limiting**: API usage optimization
+- **Async Processing**: Non-blocking asynchronous operations
+- **Connection Pooling**: MongoDB connection optimization
 
-## 🧪 Test Etme
+## 🧪 Testing
 
-### Python Scriptleri
+### Python Scripts Testing
 
 ```bash
 cd server/python_scripts
 source venv/bin/activate
 
-# Entity extraction test
+# Entity extraction testing
 python entity_extractor.py
 
 # MongoDB to Pinecone migration
 python mongodb_pinecone_embeddings.py
 
-# RAG system test
+# RAG system testing
 python travel_rag_ollamaa.py
 ```
 
-### API Testleri
+### API Testing
 
 ```bash
-# Backend test
+# Backend testing
 cd server
 npm test
 
-# Frontend test
+# Frontend testing
 cd client
 npm test
 ```
@@ -290,76 +291,87 @@ npm test
 ### Production Build
 
 ```bash
-# Frontend build
+# Frontend production build
 cd client
 npm run build
 
-# Backend production
+# Backend production start
 cd server
 npm start
 ```
 
-### Docker (Opsiyonel)
+### Docker Configuration
 
 ```dockerfile
-# Dockerfile örneği
-FROM node:16-alpine
-WORKDIR /app
-COPY package*.json ./
-RUN npm install
-COPY . .
+# Multi-stage Dockerfile
+FROM node:18-alpine AS frontend-build
+WORKDIR /app/client
+COPY client/package*.json ./
+RUN npm ci --only=production
+COPY client/ ./
+RUN npm run build
+
+FROM node:18-alpine AS backend
+WORKDIR /app/server
+COPY server/package*.json ./
+RUN npm ci --only=production
+COPY server/ ./
+COPY --from=frontend-build /app/client/build ./public
+
 EXPOSE 5001
 CMD ["npm", "start"]
 ```
 
-## 📝 Kullanım Örnekleri
+## 📝 Usage Examples
 
-### Temel Arama
+### Basic Search Workflow
 
-1. Ana sayfada hedef lokasyonu girin
-2. Bütçe seviyenizi seçin (düşük/orta/yüksek)
-3. Kişi sayısını belirleyin
-4. İlgi alanlarınızı işaretleyin
-5. Tatil sürenizi girin
-6. "Arama Yap" butonuna tıklayın
+1. Enter target location in the main form
+2. Select budget level (low/medium/high)
+3. Specify group size
+4. Choose interest categories
+5. Set vacation duration
+6. Click "Search" to generate recommendations
 
-### Gelişmiş Özellikler
+### Advanced Features
 
-- **Çoklu İlgi Alanı**: Birden fazla kategori seçebilirsiniz
-- **Esnek Bütçe**: Bütçe seviyenize göre öneriler
-- **Süre Optimizasyonu**: Tatil sürenize uygun planlar
+- **Multi-Category Selection**: Multiple interest categories support
+- **Flexible Budgeting**: Dynamic budget-based recommendations
+- **Duration Optimization**: Trip duration-specific planning
 
-## 🤝 Katkıda Bulunma
+## 🤝 Contributing
 
-1. Fork yapın
-2. Feature branch oluşturun (`git checkout -b feature/amazing-feature`)
-3. Commit yapın (`git commit -m 'Add amazing feature'`)
-4. Push yapın (`git push origin feature/amazing-feature`)
-5. Pull Request oluşturun
+1. Fork the repository
+2. Create a feature branch (`git checkout -b feature/amazing-feature`)
+3. Commit your changes (`git commit -m 'Add amazing feature'`)
+4. Push to the branch (`git push origin feature/amazing-feature`)
+5. Open a Pull Request
 
-## 📄 Lisans
+## 📄 License
 
-Bu proje MIT lisansı altında lisanslanmıştır. Detaylar için `LICENSE` dosyasına bakın.
+This project is licensed under the MIT License - see the `LICENSE` file for details.
 
-## 👥 Geliştirici
+## 👥 Developer
 
-**Tufan** - Proje Geliştiricisi
+**Tufan** - Project Developer
 
-## 🙏 Teşekkürler
+## 🙏 Acknowledgments
 
-- **OpenAI** - Embedding API'si
-- **Pinecone** - Vektör veritabanı
-- **Ollama** - Yerel LLM çözümü
-- **Material-UI** - UI bileşenleri
-- **MongoDB** - NoSQL veritabanı
+- **OpenAI** - Embedding API and language models
+- **Pinecone** - Vector database and similarity search
+- **Ollama** - Local LLM solution
+- **Material-UI** - React component library
+- **MongoDB** - NoSQL database solution
+- **spaCy** - Natural language processing library
+- **Hugging Face** - Pre-trained BERT models
 
-## 📞 İletişim
+## 📞 Contact
 
-Proje hakkında sorularınız için:
+For questions about this project:
 
-- GitHub Issues kullanın
+- Use GitHub Issues
 - Email: [your-email@example.com]
 
 ---
 
-**Not**: Bu proje geliştirme aşamasındadır. Production kullanımı için ek güvenlik ve optimizasyon önlemleri alınması önerilir.
+**Note**: This project is in active development. Additional security and optimization measures are recommended for production deployment.
